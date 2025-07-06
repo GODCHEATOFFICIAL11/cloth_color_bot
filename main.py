@@ -115,8 +115,15 @@ app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 print("🤖 Bot is running... (Press Ctrl+C to stop)")
 
 # Remove any existing webhook
-import asyncio
-asyncio.run(delete_webhook())
+import requests
+
+# Remove webhook before polling (synchronously)
+def delete_webhook():
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook"
+    r = requests.get(url)
+    print("✅ Webhook removed (if set previously)")
+
+delete_webhook()
 
 # Start bot
 app.run_polling()
