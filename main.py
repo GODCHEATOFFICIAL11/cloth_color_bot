@@ -67,7 +67,6 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if users[user_id]["count"] >= 2:
         keyboard = [[InlineKeyboardButton("📤 Forward Bot", url=f"https://t.me/{BOT_USERNAME[1:]}")]]
-, url=f"https://t.me/{Image_colour_changer_bot[1:]}")]]
         await update.message.reply_text(
             "🚫 You have reached your limit.\nRefer 2 people for more image generations:",
             reply_markup=InlineKeyboardMarkup(keyboard)
@@ -79,7 +78,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     file = await update.message.photo[-1].get_file()
     img_url = file.file_path
 
-    print("🖼️ Image URL:", img_url)  # For debugging
+    print("🖼️ Image URL:", img_url)
 
     # Send request to API
     resp = requests.post(API_URL, json={
@@ -87,7 +86,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "cloth": "https://i.ibb.co/fNtfsHP/cloth1.png"
     })
 
-    print("🌐 API Response:", resp.text)  # For debugging
+    print("🌐 API Response:", resp.text)
 
     try:
         result = resp.json()
@@ -101,30 +100,24 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         print("❌ Error processing image:", str(e))
         await update.message.reply_text("❌ Failed to process image. Try again later.")
 
-# === REMOVE WEBHOOK IF NEEDED ===
-async def delete_webhook():
+# === MAIN ===
+async def main():
+    # Delete webhook (clean)
     requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
     print("✅ Webhook removed (if set previously)")
 
-# === MAIN ===
-app = ApplicationBuilder().token(BOT_TOKEN).build()
+    # Init application
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(verify, pattern="^verify$"))
-app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(verify, pattern="^verify$"))
+    app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
-print("🤖 Bot is running... (Press Ctrl+C to stop)")
+    print("🤖 Bot is running... (Press Ctrl+C to stop)")
+    await app.run_polling()
 
-# Remove any existing webhook
-import requests
-
-# Remove webhook before polling (synchronously)
-def delete_webhook():
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook"
-    r = requests.get(url)
-    print("✅ Webhook removed (if set previously)")
-
-delete_webhook()
-
-# Start bot
-app.run_polling()
+# === RUN ===
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+    
