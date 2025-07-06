@@ -4,13 +4,14 @@ import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 
+# === CONFIGURATION ===
 BOT_TOKEN = "7002558853:AAFX0gEwS8RJh6MY8g1qw2P_oVdQYu1_GNc"
 OWNER_ID = 1209978813
 FORCE_JOIN_CHANNEL = "-1001857302142"
 BOT_USERNAME = "@Image_colour_changer_bot"
 API_URL = "https://clothchangertech.usefullbots.workers.dev/clothchangertech"
 
-# Create database if not exists
+# === INIT DB ===
 if not os.path.exists("db.json"):
     with open("db.json", "w") as f:
         json.dump({}, f)
@@ -22,7 +23,7 @@ def save():
     with open("db.json", "w") as f:
         json.dump(users, f)
 
-# /start command
+# === COMMAND: /start ===
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if str(user.id) not in users:
@@ -44,7 +45,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
-# Verify callback
+# === CALLBACK: verify button ===
 async def verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -58,14 +59,14 @@ async def verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await query.edit_message_text("✅ You are verified!\nSend me a person image to change clothes colour")
 
-# Handle photo message
+# === PHOTO HANDLER ===
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     if user_id not in users:
         users[user_id] = {"count": 0}
 
     if users[user_id]["count"] >= 2:
-        keyboard = [[InlineKeyboardButton("📤 Forward Bot", url=f"https://t.me/{BOT_USERNAME[1:]}")]]
+        keyboard = [[InlineKeyboardButton("📤 Forward Bot", url=f"https://t.me/{Image_colour_changer_bot[1:]}")]]
         await update.message.reply_text(
             "🚫 You have reached your limit.\nRefer 2 people for more image generations:",
             reply_markup=InlineKeyboardMarkup(keyboard)
@@ -73,13 +74,19 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     await update.message.reply_text("♻️ Wait I am changing cloth colour, please wait a few seconds... ⏳")
-    file = await update.message.photo[-1].get_file()
-    img_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file.file_path}"
 
+    file = await update.message.photo[-1].get_file()
+    img_url = file.file_path
+
+    print("🖼️ Image URL:", img_url)  # For debugging
+
+    # Send request to API
     resp = requests.post(API_URL, json={
         "person": img_url,
         "cloth": "https://i.ibb.co/fNtfsHP/cloth1.png"
     })
+
+    print("🌐 API Response:", resp.text)  # For debugging
 
     try:
         result = resp.json()
@@ -89,14 +96,27 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_photo(result["result_url"], caption="🎉 Congratulations!\nI sent you your image ✅")
         else:
             raise Exception()
-    except:
+    except Exception as e:
+        print("❌ Error processing image:", str(e))
         await update.message.reply_text("❌ Failed to process image. Try again later.")
 
-# Start bot
+# === REMOVE WEBHOOK IF NEEDED ===
+async def delete_webhook():
+    requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/deleteWebhook")
+    print("✅ Webhook removed (if set previously)")
+
+# === MAIN ===
 app = ApplicationBuilder().token(BOT_TOKEN).build()
+
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(verify, pattern="^verify$"))
 app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
 
 print("🤖 Bot is running... (Press Ctrl+C to stop)")
+
+# Remove any existing webhook
+import asyncio
+asyncio.run(delete_webhook())
+
+# Start bot
 app.run_polling()
