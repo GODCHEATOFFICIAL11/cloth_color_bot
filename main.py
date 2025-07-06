@@ -66,7 +66,8 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         users[user_id] = {"count": 0}
 
     if users[user_id]["count"] >= 2:
-        keyboard = [[InlineKeyboardButton("📤 Forward Bot", url=f"https://t.me/{Image_colour_changer_bot[1:]}")]]
+        keyboard = [[InlineKeyboardButton("📤 Forward Bot", url=f"https://t.me/{BOT_USERNAME[1:]}")]]
+, url=f"https://t.me/{Image_colour_changer_bot[1:]}")]]
         await update.message.reply_text(
             "🚫 You have reached your limit.\nRefer 2 people for more image generations:",
             reply_markup=InlineKeyboardMarkup(keyboard)
