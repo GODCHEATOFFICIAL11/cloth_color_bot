@@ -10,6 +10,7 @@ FORCE_JOIN_CHANNEL = "-1001857302142"
 BOT_USERNAME = "@Image_colour_changer_bot"
 API_URL = "https://clothchangertech.usefullbots.workers.dev/clothchangertech"
 
+# Create database if not exists
 if not os.path.exists("db.json"):
     with open("db.json", "w") as f:
         json.dump({}, f)
@@ -21,6 +22,7 @@ def save():
     with open("db.json", "w") as f:
         json.dump(users, f)
 
+# /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if str(user.id) not in users:
@@ -42,6 +44,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode="Markdown"
     )
 
+# Verify callback
 async def verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -55,6 +58,7 @@ async def verify(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await query.edit_message_text("✅ You are verified!\nSend me a person image to change clothes colour")
 
+# Handle photo message
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
     if user_id not in users:
@@ -68,9 +72,9 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
 
-    await update.message.reply_text("♻️ Wait I am changing cloth colour, please wait a while second... ⏳")
+    await update.message.reply_text("♻️ Wait I am changing cloth colour, please wait a few seconds... ⏳")
     file = await update.message.photo[-1].get_file()
-    img_url = file.file_path
+    img_url = f"https://api.telegram.org/file/bot{BOT_TOKEN}/{file.file_path}"
 
     resp = requests.post(API_URL, json={
         "person": img_url,
@@ -88,6 +92,7 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except:
         await update.message.reply_text("❌ Failed to process image. Try again later.")
 
+# Start bot
 app = ApplicationBuilder().token(BOT_TOKEN).build()
 app.add_handler(CommandHandler("start", start))
 app.add_handler(CallbackQueryHandler(verify, pattern="^verify$"))
