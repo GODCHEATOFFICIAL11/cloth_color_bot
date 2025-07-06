@@ -4,7 +4,7 @@ import requests
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, CallbackQueryHandler, ContextTypes, filters
 
-BOT_TOKEN = os.getenv("7002558853:AAFX0gEwS8RJh6MY8g1qw2P_oVdQYu1_GNc")
+BOT_TOKEN = "7002558853:AAFX0gEwS8RJh6MY8g1qw2P_oVdQYu1_GNc"
 OWNER_ID = 1209978813
 FORCE_JOIN_CHANNEL = "-1001857302142"
 BOT_USERNAME = "@Image_colour_changer_bot"
@@ -61,14 +61,14 @@ async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
         users[user_id] = {"count": 0}
 
     if users[user_id]["count"] >= 2:
-        keyboard = [[InlineKeyboardButton("📤 Forward Bot", url=f"https://t.me/{Image_colour_changer_bot[1:]}")]]
+        keyboard = [[InlineKeyboardButton("📤 Forward Bot", url=f"https://t.me/{BOT_USERNAME[1:]}")]]
         await update.message.reply_text(
             "🚫 You have reached your limit.\nRefer 2 people for more image generations:",
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
         return
 
-    await update.message.reply_text("♻️ Wait I am changing cloth colour, please wait a while  second... ⏳")
+    await update.message.reply_text("♻️ Wait I am changing cloth colour, please wait a while second... ⏳")
     file = await update.message.photo[-1].get_file()
     img_url = file.file_path
 
